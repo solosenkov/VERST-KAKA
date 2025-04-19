@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Layout Ruler",
+  "version": "1.0.0",
+  "description": "Инструмент для измерения расстояний между элементами на веб-странице",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "src/icons/icon16.png",
+      "48": "src/icons/icon48.png",
+      "128": "src/icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": [
+        "src/css/ruler.css",
+        "src/css/style-inspector.css"
+      ],
+      "js": [
+        "src/js/ruler.js",
+        "src/js/style-inspector.js"
+      ]
+    }
+  ]
+}

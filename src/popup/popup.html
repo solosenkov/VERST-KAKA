@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Layout Ruler</title>
+    <style>
+        body {
+            width: 200px;
+            padding: 10px;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .tool-button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tool-button:hover {
+            background: #0056b3;
+        }
+        .tool-button.active {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <button id="toggleRuler" class="tool-button">Включить линейку</button>
+    <button id="toggleStyleInspector" class="tool-button">Включить инспектор стилей</button>
+    <script src="popup.js"></script>
+</body>
+</html>

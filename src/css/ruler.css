@@ -1,0 +1,29 @@
+.ruler-measurement {
+    box-sizing: border-box;
+}
+
+.ruler-label {
+    position: absolute;
+    background: #007AFF;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: system-ui, -apple-system, sans-serif;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.ruler-label.horizontal {
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.ruler-label.vertical {
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+}

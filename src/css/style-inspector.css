@@ -1,0 +1,38 @@
+.style-inspector-popup {
+    position: fixed;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 999999;
+    pointer-events: none;
+    max-width: 300px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.style-info-group {
+    margin: 4px 0;
+}
+
+.style-info-group-title {
+    color: #007AFF;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.style-info-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 2px 0;
+}
+
+.style-info-label {
+    color: #aaa;
+    margin-right: 8px;
+}
+
+.style-info-value {
+    color: #fff;
+}

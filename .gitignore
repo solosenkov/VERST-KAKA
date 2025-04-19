@@ -1,0 +1,13 @@
+# Файлы документации разработки
+todo.md
+roadmap.md
+dev-rules.md
+
+# Системные файлы macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
