@@ -6,10 +6,12 @@
     height: 100%;
     pointer-events: none;
     z-index: 9999;
+    visibility: hidden;
 }
 
 .design-compare.active {
     pointer-events: all;
+    visibility: visible;
 }
 
 .design-compare-image {
@@ -27,12 +29,15 @@
     border-radius: 8px;
     color: white;
     z-index: 10000;
-    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.2s;
     pointer-events: all;
 }
 
 .design-compare-controls.active {
-    display: block;
+    visibility: visible;
+    opacity: 1;
 }
 
 .design-compare-handle {

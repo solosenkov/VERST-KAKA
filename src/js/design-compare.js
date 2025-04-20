@@ -161,6 +161,13 @@ class DesignCompare {
         
         if (this.container) {
             this.container.classList.toggle('active', state);
+            
+            // Добавляем сброс видимости изображения
+            if (!state && this.imageWrapper) {
+                this.imageWrapper.style.display = 'none';
+            } else if (this.imageWrapper) {
+                this.imageWrapper.style.display = 'block';
+            }
         }
     }
 }
