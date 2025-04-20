@@ -24,11 +24,13 @@
       "matches": ["<all_urls>"],
       "css": [
         "src/css/ruler.css",
-        "src/css/style-inspector.css"
+        "src/css/style-inspector.css",
+        "src/css/grid.css"
       ],
       "js": [
         "src/js/ruler.js",
-        "src/js/style-inspector.js"
+        "src/js/style-inspector.js",
+        "src/js/grid.js"
       ]
     }
   ]

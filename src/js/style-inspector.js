@@ -1,13 +1,12 @@
 class StyleInspector {
     constructor() {
         this.isActive = false;
-        this.popup = null;
+        this.tooltip = null;
         this.bindEvents();
         this.bindEscapeKey();
     }
 
     bindEvents() {
-        // Слушаем сообщения от popup
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             if (message.type === 'TOGGLE_STYLE_INSPECTOR') {
                 this.toggleInspector(message.isActive);
@@ -15,7 +14,7 @@ class StyleInspector {
             } else if (message.type === 'GET_STYLE_INSPECTOR_STATE') {
                 sendResponse({ isActive: this.isActive });
             }
-            return true; // Важно для поддержки асинхронных ответов
+            return true;
         });
     }
 
@@ -23,7 +22,6 @@ class StyleInspector {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isActive) {
                 this.toggleInspector(false);
-                // Отправляем сообщение в popup для обновления состояния кнопки
                 chrome.runtime.sendMessage({
                     type: 'STYLE_INSPECTOR_STATE_CHANGED',
                     isActive: false
@@ -35,12 +33,12 @@ class StyleInspector {
     toggleInspector(state) {
         this.isActive = state;
         if (this.isActive) {
-            document.body.addEventListener('mousemove', this.handleMouseMove.bind(this));
-            document.body.addEventListener('mouseout', this.handleMouseOut.bind(this));
+            document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+            document.addEventListener('mouseout', this.handleMouseOut.bind(this));
         } else {
-            document.body.removeEventListener('mousemove', this.handleMouseMove.bind(this));
-            document.body.removeEventListener('mouseout', this.handleMouseOut.bind(this));
-            this.removePopup();
+            document.removeEventListener('mousemove', this.handleMouseMove.bind(this));
+            document.removeEventListener('mouseout', this.handleMouseOut.bind(this));
+            this.removeTooltip();
         }
     }
 
@@ -48,124 +46,134 @@ class StyleInspector {
         if (!this.isActive) return;
 
         const element = document.elementFromPoint(e.clientX, e.clientY);
-        if (!element || element === this.popup) return;
+        if (!element || element === this.tooltip) return;
 
         this.showStyleInfo(element, e.clientX, e.clientY);
     }
 
     handleMouseOut(e) {
         if (!this.isActive) return;
-        
         const relatedTarget = e.relatedTarget;
         if (!relatedTarget || !document.body.contains(relatedTarget)) {
-            this.removePopup();
+            this.removeTooltip();
         }
+    }
+
+    getColorPreview(color) {
+        return `<span class="color-preview" style="background-color: ${color}"></span>${color}`;
+    }
+
+    formatSpacing(top, right, bottom, left) {
+        return `${top} ${right} ${bottom} ${left}`;
     }
 
     showStyleInfo(element, x, y) {
         const styles = window.getComputedStyle(element);
         
-        if (!this.popup) {
-            this.popup = document.createElement('div');
-            this.popup.className = 'style-inspector-popup';
-            document.body.appendChild(this.popup);
+        if (!this.tooltip) {
+            this.tooltip = document.createElement('div');
+            this.tooltip.className = 'style-inspector-tooltip';
+            document.body.appendChild(this.tooltip);
         }
 
-        // Собираем информацию о стилях
-        const styleInfo = {
-            font: {
+        const styleInfo = [
+            {
                 title: 'Шрифт',
-                items: {
-                    'Семейство': styles.fontFamily,
-                    'Размер': styles.fontSize,
-                    'Вес': styles.fontWeight,
-                    'Стиль': styles.fontStyle
-                }
+                items: [
+                    { label: 'Семейство', value: styles.fontFamily },
+                    { label: 'Размер', value: styles.fontSize },
+                    { label: 'Вес', value: styles.fontWeight },
+                    { label: 'Стиль', value: styles.fontStyle },
+                    { label: 'Высота строки', value: styles.lineHeight }
+                ]
             },
-            color: {
+            {
                 title: 'Цвета',
-                items: {
-                    'Текст': styles.color,
-                    'Фон': styles.backgroundColor
-                }
+                items: [
+                    { label: 'Текст', value: this.getColorPreview(styles.color) },
+                    { label: 'Фон', value: this.getColorPreview(styles.backgroundColor) }
+                ]
             },
-            spacing: {
+            {
                 title: 'Отступы',
-                items: {
-                    'Внешние': `${styles.marginTop} ${styles.marginRight} ${styles.marginBottom} ${styles.marginLeft}`,
-                    'Внутренние': `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}`
-                }
+                items: [
+                    { 
+                        label: 'Внешние', 
+                        value: this.formatSpacing(
+                            styles.marginTop, 
+                            styles.marginRight, 
+                            styles.marginBottom, 
+                            styles.marginLeft
+                        )
+                    },
+                    { 
+                        label: 'Внутренние', 
+                        value: this.formatSpacing(
+                            styles.paddingTop, 
+                            styles.paddingRight, 
+                            styles.paddingBottom, 
+                            styles.paddingLeft
+                        )
+                    }
+                ]
             },
-            border: {
+            {
                 title: 'Границы',
-                items: {
-                    'Стиль': styles.borderStyle,
-                    'Цвет': styles.borderColor,
-                    'Ширина': styles.borderWidth,
-                    'Радиус': styles.borderRadius
-                }
+                items: [
+                    { label: 'Стиль', value: styles.borderStyle },
+                    { label: 'Цвет', value: this.getColorPreview(styles.borderColor) },
+                    { label: 'Ширина', value: styles.borderWidth },
+                    { label: 'Радиус', value: styles.borderRadius }
+                ]
+            },
+            {
+                title: 'Позиционирование',
+                items: [
+                    { label: 'Display', value: styles.display },
+                    { label: 'Position', value: styles.position },
+                    { label: 'Z-Index', value: styles.zIndex }
+                ]
             }
-        };
+        ];
 
-        // Формируем HTML для popup
-        let html = '';
-        for (const [group, data] of Object.entries(styleInfo)) {
-            html += `
-                <div class="style-info-group">
-                    <div class="style-info-group-title">${data.title}</div>
-                    ${Object.entries(data.items).map(([label, value]) => `
-                        <div class="style-info-item">
-                            <span class="style-info-label">${label}:</span>
-                            <span class="style-info-value">${value}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
+        const html = styleInfo.map(section => `
+            <div class="style-info-section">
+                <div class="style-info-title">${section.title}</div>
+                ${section.items.map(item => `
+                    <div class="style-info-row">
+                        <span class="style-info-label">${item.label}:</span>
+                        <span class="style-info-value">${item.value}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
 
-        // Улучшенное позиционирование popup
+        this.tooltip.innerHTML = html;
+
+        // Позиционирование тултипа
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        const scrollX = window.scrollX;
-        const scrollY = window.scrollY;
-
-        // Устанавливаем popup сначала в невидимое состояние для измерения размеров
-        this.popup.style.visibility = 'hidden';
-        this.popup.innerHTML = html;
+        const tooltipRect = this.tooltip.getBoundingClientRect();
         
-        // Получаем размеры popup после добавления контента
-        const popupRect = this.popup.getBoundingClientRect();
-        const popupWidth = popupRect.width;
-        const popupHeight = popupRect.height;
+        let posX = x + 15;
+        let posY = y + 15;
 
-        // Рассчитываем оптимальную позицию
-        let posX = x + 10;
-        let posY = y + 10;
-
-        // Проверяем и корректируем позицию по горизонтали
-        if (posX + popupWidth > viewportWidth + scrollX) {
-            posX = x - popupWidth - 10;
+        if (posX + tooltipRect.width > viewportWidth) {
+            posX = x - tooltipRect.width - 15;
         }
 
-        // Проверяем и корректируем позицию по вертикали
-        if (posY + popupHeight > viewportHeight + scrollY) {
-            posY = y - popupHeight - 10;
+        if (posY + tooltipRect.height > viewportHeight) {
+            posY = y - tooltipRect.height - 15;
         }
 
-        // Убеждаемся, что popup не выходит за левую и верхнюю границы
-        posX = Math.max(scrollX, posX);
-        posY = Math.max(scrollY, posY);
-
-        // Применяем позицию и делаем popup видимым
-        this.popup.style.left = `${posX}px`;
-        this.popup.style.top = `${posY}px`;
-        this.popup.style.visibility = 'visible';
+        this.tooltip.style.left = `${posX}px`;
+        this.tooltip.style.top = `${posY}px`;
     }
 
-    removePopup() {
-        if (this.popup) {
-            this.popup.remove();
-            this.popup = null;
+    removeTooltip() {
+        if (this.tooltip) {
+            this.tooltip.remove();
+            this.tooltip = null;
         }
     }
 }
