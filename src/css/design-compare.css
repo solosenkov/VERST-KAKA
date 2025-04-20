@@ -1,0 +1,61 @@
+.design-compare {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.design-compare.active {
+    pointer-events: all;
+}
+
+.design-compare-image {
+    position: absolute;
+    max-width: none;
+    transform-origin: top left;
+}
+
+.design-compare-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    z-index: 10000;
+    display: none;
+    pointer-events: all;
+}
+
+.design-compare-controls.active {
+    display: block;
+}
+
+.design-compare-handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #007AFF;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.design-compare-handle.top-left { top: -6px; left: -6px; cursor: nw-resize; }
+.design-compare-handle.top-right { top: -6px; right: -6px; cursor: ne-resize; }
+.design-compare-handle.bottom-left { bottom: -6px; left: -6px; cursor: sw-resize; }
+.design-compare-handle.bottom-right { bottom: -6px; right: -6px; cursor: se-resize; }
+
+.design-compare-image.dragging {
+    cursor: move;
+}
+
+.design-compare-wrapper {
+    position: absolute;
+    cursor: move;
+}

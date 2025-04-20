@@ -67,6 +67,7 @@
         <button id="toggleRuler" class="tool-button">Включить линейку</button>
         <button id="toggleStyleInspector" class="tool-button">Включить инспектор стилей</button>
         <button id="toggleGrid" class="tool-button">Включить сетку</button>
+        <button id="toggleDesignCompare" class="tool-button">Сравнить макеты</button>
     </div>
 
     <div id="gridSettings" class="grid-settings">
@@ -93,6 +94,34 @@
         <div class="grid-settings-group">
             <label for="gridGutter">Отступ между колонками (px):</label>
             <input type="number" id="gridGutter" min="0" max="100" value="20">
+        </div>
+    </div>
+
+    <!-- Настройки сравнения макетов -->
+    <div id="designCompareSettings" class="grid-settings">
+        <div class="grid-settings-group">
+            <label for="designFile">Загрузить макет:</label>
+            <input type="file" id="designFile" accept="image/*">
+        </div>
+        
+        <div class="grid-settings-group">
+            <label for="designOpacity">Прозрачность: <span id="designOpacityValue">0.5</span></label>
+            <input type="range" id="designOpacity" min="0" max="1" step="0.1" value="0.5">
+        </div>
+        
+        <div class="grid-settings-group">
+            <label for="designScale">Масштаб (%):</label>
+            <input type="number" id="designScale" min="10" max="200" value="100">
+        </div>
+        
+        <div class="grid-settings-group">
+            <label for="designPosX">Позиция X (px):</label>
+            <input type="number" id="designPosX" value="0">
+        </div>
+        
+        <div class="grid-settings-group">
+            <label for="designPosY">Позиция Y (px):</label>
+            <input type="number" id="designPosY" value="0">
         </div>
     </div>
     <script src="popup.js"></script>
