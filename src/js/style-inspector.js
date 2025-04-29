@@ -59,8 +59,34 @@ class StyleInspector {
         }
     }
 
+    // Функция для конвертации RGB(A) в HEX
+    rgbToHex(rgbString) {
+        // Проверяем, является ли строка валидным rgb или rgba
+        const match = rgbString.match(/^rgba?\(([^)]+)\)/);
+        if (!match) {
+            // Если это не rgb/rgba (например, 'transparent' или именованный цвет), возвращаем как есть
+            return rgbString;
+        }
+
+        const values = match[1].split(',').map(Number);
+        const r = values[0];
+        const g = values[1];
+        const b = values[2];
+
+        // Функция для конвертации одного значения в HEX
+        const componentToHex = (c) => {
+            const hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        };
+
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+    }
+
     getColorPreview(color) {
-        return `<span class="color-preview" style="background-color: ${color}"></span>${color}`;
+        const hexColor = this.rgbToHex(color);
+        // Показываем HEX только если он отличается от исходного значения (т.е. если конвертация удалась)
+        const hexDisplay = (hexColor !== color && hexColor.startsWith('#')) ? ` (${hexColor})` : '';
+        return `<span class="color-preview" style="background-color: ${color}"></span>${color}${hexDisplay}`;
     }
 
     formatSpacing(top, right, bottom, left) {
