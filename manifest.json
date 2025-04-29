@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "tabs"
+    "tabs",
+    "windows" // Добавлено разрешение для управления окнами
   ],
   "host_permissions": [
     "<all_urls>"
@@ -26,13 +27,15 @@
         "src/css/ruler.css",
         "src/css/style-inspector.css",
         "src/css/grid.css",
-        "src/css/design-compare.css"
+        "src/css/design-compare.css",
+        "src/css/responsiveness.css" // Добавлены стили для адаптивности
       ],
       "js": [
         "src/js/ruler.js",
         "src/js/style-inspector.js",
         "src/js/grid.js",
-        "src/js/design-compare.js"
+        "src/js/design-compare.js",
+        "src/js/responsiveness.js" // Добавлен скрипт для адаптивности
       ]
     }
   ]

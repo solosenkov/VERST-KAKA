@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Layout Ruler</title>
+    <link rel="stylesheet" href="../css/responsiveness.css"> <!-- Добавляем стили для адаптивности -->
     <style>
         body {
             width: 300px;
@@ -60,6 +61,40 @@
             border: none;
             margin-right: 5px;
         }
+        /* Общие стили для панелей настроек */
+        .settings-panel {
+            padding: 10px;
+            border-top: 1px solid #eee;
+            margin-top: 10px;
+            display: none; /* Скрыты по умолчанию */
+        }
+        .settings-panel.visible {
+            display: block;
+        }
+        .settings-group {
+            margin-bottom: 10px;
+        }
+        .settings-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        .settings-group input[type="number"],
+        .settings-group input[type="range"],
+        .settings-group input[type="file"],
+        .settings-group input[type="checkbox"] {
+            margin-bottom: 5px;
+        }
+        .settings-group input[type="color"] {
+            width: 50px;
+            padding: 0;
+            border: none;
+            margin-right: 5px;
+        }
+        .settings-group input[type="range"] {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -68,9 +103,10 @@
         <button id="toggleStyleInspector" class="tool-button">Включить инспектор стилей</button>
         <button id="toggleGrid" class="tool-button">Включить сетку</button>
         <button id="toggleDesignCompare" class="tool-button">Сравнить макеты</button>
+        <button id="toggleResponsiveness" class="tool-button">Проверить адаптивность</button> <!-- Новая кнопка -->
     </div>
 
-    <div id="gridSettings" class="grid-settings">
+    <div id="gridSettings" class="settings-panel">
         <div class="grid-settings-group">
             <label for="gridColumns">Количество колонок:</label>
             <input type="number" id="gridColumns" min="1" max="24" value="12">
@@ -98,7 +134,7 @@
     </div>
 
     <!-- Настройки сравнения макетов -->
-    <div id="designCompareSettings" class="grid-settings">
+    <div id="designCompareSettings" class="settings-panel">
         <div class="grid-settings-group">
             <label for="designFile">Загрузить макет:</label>
             <input type="file" id="designFile" accept="image/*">
@@ -124,6 +160,46 @@
             <input type="number" id="designPosY" value="0">
         </div>
     </div>
+
+    <!-- Настройки проверки адаптивности -->
+    <div id="responsivenessSettings" class="settings-panel">
+        <div class="settings-group">
+            <label>Пресеты:</label>
+            <button class="responsiveness-preset-button" data-width="390" data-height="844">
+                <img src="../icons/devices/mobile.svg" alt="Mobile"> Mobile (390x844)
+            </button>
+            <button class="responsiveness-preset-button" data-width="768" data-height="1024">
+                <img src="../icons/devices/tablet.svg" alt="Tablet"> Tablet (768x1024)
+            </button>
+            <button class="responsiveness-preset-button" data-width="1440" data-height="900">
+                <img src="../icons/devices/laptop.svg" alt="Laptop"> Laptop (1440x900)
+            </button>
+            <button class="responsiveness-preset-button" data-width="" data-height="">
+                <img src="../icons/devices/desktop.svg" alt="Desktop"> Desktop (Full)
+            </button>
+        </div>
+
+        <div class="settings-group responsiveness-custom-size">
+            <label>Пользовательский размер:</label>
+            <input type="number" id="respWidth" placeholder="Ширина" min="320">
+            x
+            <input type="number" id="respHeight" placeholder="Высота" min="480">
+            <button id="setCustomSize">Применить</button>
+        </div>
+
+        <div class="settings-group responsiveness-slider-group">
+            <label for="respWidthSlider">Ширина: <span id="respWidthValue"></span> px</label>
+            <input type="range" id="respWidthSlider" min="320" max="1920" step="10">
+        </div>
+
+        <div class="settings-group">
+            <label>
+                <input type="checkbox" id="checkAccessibilityTargets">
+                Проверять размер интерактивных элементов (min 44px)
+            </label>
+        </div>
+    </div>
+
     <script src="popup.js"></script>
 </body>
 </html>
