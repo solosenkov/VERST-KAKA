@@ -1,0 +1,94 @@
+/* Стили для проверки размеров элементов */
+.element-size-check-overlay {
+    position: absolute;
+    z-index: 999999;
+    pointer-events: none;
+    transition: background-color 0.2s ease;
+}
+
+.element-size-check-overlay.too-small {
+    background-color: rgba(255, 0, 0, 0.3);
+    border: 2px solid red;
+    box-sizing: border-box;
+}
+
+.element-size-check-tooltip {
+    position: absolute;
+    background-color: #333;
+    color: white;
+    font-size: 12px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    z-index: 9999999;
+    pointer-events: none;
+}
+
+.element-size-highlight {
+    position: relative;
+    outline: 2px solid red !important;
+    background-color: rgba(255, 87, 51, 0.2) !important;
+    z-index: 9999;
+}
+
+.element-size-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #ff3366;
+    color: white;
+    font-size: 10px;
+    padding: 2px 4px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+/* Скрывать элементы, если размер меньше 10px */
+.element-size-highlight.too-small {
+    display: none !important;
+}
+
+.element-size-dimensions {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+.element-size-control-panel {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 10001;
+    font-family: Arial, sans-serif;
+}
+
+.element-size-control-panel label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.element-size-control-panel input[type="range"] {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.element-size-close-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+}
