@@ -93,29 +93,34 @@ class ElementSizeCheck {
     document.body.appendChild(panel);
     this.controlPanel = panel;
     
-    // Добавляем обработчики событий
-    const closeBtn = panel.querySelector('.element-size-close-btn');
-    closeBtn.addEventListener('click', () => this.deactivate());
+    // Добавляем обработчики для элементов управления
+    const closeButton = panel.querySelector('.element-size-close-btn');
+    closeButton.addEventListener('click', () => {
+      this.deactivate();
+      chrome.runtime.sendMessage({
+        type: 'ELEMENT_SIZE_CHECK_STATE_CHANGED',
+        isActive: false
+      });
+    });
     
     const sizeSlider = panel.querySelector('#size-slider');
-    sizeSlider.addEventListener('input', this.updateMinSize);
+    sizeSlider.addEventListener('input', (e) => {
+      this.updateMinSize(parseInt(e.target.value));
+    });
     
-    const showDimensions = panel.querySelector('#show-dimensions');
-    showDimensions.addEventListener('change', (e) => {
+    const showDimensionsCheckbox = panel.querySelector('#show-dimensions');
+    showDimensionsCheckbox.addEventListener('change', (e) => {
       this.showDimensions = e.target.checked;
       this.highlightElements();
     });
     
-    const colorPicker = panel.querySelector('#highlight-color');
-    colorPicker.addEventListener('input', (e) => {
+    const highlightColorPicker = panel.querySelector('#highlight-color');
+    highlightColorPicker.addEventListener('change', (e) => {
       this.highlightColor = e.target.value;
-      document.querySelectorAll('.element-size-highlight').forEach(el => {
-        el.style.outlineColor = this.highlightColor;
-        el.style.backgroundColor = this.highlightColor.replace(')', ', 0.2)').replace('rgb', 'rgba');
-      });
+      this.highlightElements();
     });
   }
-
+  
   /**
    * Удаляет контрольную панель
    */
@@ -125,153 +130,187 @@ class ElementSizeCheck {
       this.controlPanel = null;
     }
   }
-
+  
   /**
-   * Обновляет значение минимального размера и перезапускает подсветку
+   * Обновляет минимальный размер элементов
    */
-  updateMinSize(e) {
-    this.minSize = parseInt(e.target.value);
-    const valueDisplay = document.getElementById('size-value');
-    if (valueDisplay) {
-      valueDisplay.textContent = `${this.minSize}px`;
+  updateMinSize(size) {
+    this.minSize = size;
+    if (this.controlPanel) {
+      this.controlPanel.querySelector('#size-value').textContent = `${size}px`;
     }
     this.highlightElements();
   }
-
+  
   /**
-   * Очищает все наложения
-   */
-  clearOverlays() {
-    document.querySelectorAll('.element-size-highlight').forEach(el => {
-      el.classList.remove('element-size-highlight');
-    });
-    
-    document.querySelectorAll('.element-size-dimensions').forEach(el => {
-      document.body.removeChild(el);
-    });
-    
-    this.overlays = [];
-  }
-
-  /**
-   * Подсвечивает элементы меньше указанного размера
+   * Подсвечивает элементы, не соответствующие минимальным размерам
    */
   highlightElements() {
-    // Очищаем предыдущие наложения
+    // Сначала очищаем все предыдущие наложения
     this.clearOverlays();
     
-    // Находим все интерактивные элементы
-    const interactiveElements = document.querySelectorAll('a, button, input, select, textarea, [role="button"], [tabindex]');
+    // Находим все кликабельные элементы (ссылки, кнопки и т.д.)
+    const clickableElements = document.querySelectorAll('a, button, input, select, textarea, [role="button"], [tabindex="0"]');
     
-    interactiveElements.forEach(element => {
+    clickableElements.forEach(element => {
+      // Получаем размеры элемента
       const rect = element.getBoundingClientRect();
       const width = rect.width;
       const height = rect.height;
       
-      // Проверяем, меньше ли элемент минимального размера
+      // Если любой из размеров меньше минимального, подсвечиваем
       if (width < this.minSize || height < this.minSize) {
-        element.classList.add('element-size-highlight');
-        
-        if (this.showDimensions) {
-          const dimensionsElement = document.createElement('div');
-          dimensionsElement.className = 'element-size-dimensions';
-          dimensionsElement.textContent = `${Math.round(width)}×${Math.round(height)}px`;
-          dimensionsElement.style.top = `${rect.top + window.scrollY - 20}px`;
-          dimensionsElement.style.left = `${rect.left + window.scrollX}px`;
-          
-          document.body.appendChild(dimensionsElement);
-          this.overlays.push(dimensionsElement);
-        }
+        this.highlightElement(element, rect);
       }
     });
   }
-
+  
   /**
-   * Обработчик движения мыши для обновления подсказок с размерами
+   * Подсвечивает один элемент и показывает его размеры
    */
-  onMouseMove(e) {
-    const element = document.elementFromPoint(e.clientX, e.clientY);
-    if (!element) return;
+  highlightElement(element, rect) {
+    // Создаем наложение
+    const overlay = document.createElement('div');
+    overlay.classList.add('element-size-overlay');
+    overlay.style.position = 'absolute';
+    overlay.style.left = `${window.scrollX + rect.left}px`;
+    overlay.style.top = `${window.scrollY + rect.top}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.height = `${rect.height}px`;
+    overlay.style.backgroundColor = this.highlightColor + '66'; // Добавляем прозрачность
+    overlay.style.border = `2px solid ${this.highlightColor}`;
+    overlay.style.boxSizing = 'border-box';
+    overlay.style.pointerEvents = 'none';
+    overlay.style.zIndex = '999999';
     
-    // Проверяем, есть ли у элемента или его родителей класс подсветки
-    let highlightedElement = null;
-    let node = element;
-    
-    while (node && node !== document.body) {
-      if (node.classList.contains('element-size-highlight')) {
-        highlightedElement = node;
-        break;
-      }
-      node = node.parentElement;
-    }
-    
-    // Обновляем видимость меток с размерами
+    // Если нужно, добавляем метку с размерами
     if (this.showDimensions) {
-      this.overlays.forEach(overlay => {
-        if (overlay.classList.contains('element-size-dimensions')) {
-          overlay.style.opacity = highlightedElement ? '1' : '0.5';
-        }
-      });
+      const dimensions = document.createElement('div');
+      dimensions.classList.add('element-size-dimensions');
+      dimensions.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+      dimensions.style.position = 'absolute';
+      dimensions.style.left = '0';
+      dimensions.style.top = '0';
+      dimensions.style.backgroundColor = this.highlightColor;
+      dimensions.style.color = '#fff';
+      dimensions.style.padding = '2px 4px';
+      dimensions.style.fontSize = '12px';
+      dimensions.style.fontFamily = 'Arial, sans-serif';
+      dimensions.style.fontWeight = 'bold';
+      dimensions.style.pointerEvents = 'none';
+      overlay.appendChild(dimensions);
     }
+    
+    document.body.appendChild(overlay);
+    this.overlays.push(overlay);
   }
-
+  
   /**
-   * Переключает состояние инструмента
+   * Удаляет все наложения с подсветкой элементов
    */
-  toggle() {
-    if (this.isActive) {
-      this.deactivate();
-    } else {
-      this.activate();
-    }
-    return this.isActive;
+  clearOverlays() {
+    this.overlays.forEach(overlay => {
+      document.body.removeChild(overlay);
+    });
+    this.overlays = [];
   }
-
+  
   /**
-   * Применяет настройки
+   * Обработчик движения мыши для обновления позиции меток
    */
-  applySettings(settings) {
+  onMouseMove() {
+    this.highlightElements();
+  }
+  
+  /**
+   * Возвращает текущее состояние и настройки инструмента
+   */
+  getState() {
+    return {
+      isActive: this.isActive,
+      settings: {
+        minSize: this.minSize,
+        showDimensions: this.showDimensions,
+        highlightColor: this.highlightColor
+      }
+    };
+  }
+  
+  /**
+   * Применяет новые настройки
+   */
+  updateSettings(settings) {
     if (settings.minSize !== undefined) {
       this.minSize = settings.minSize;
-    }
-    if (settings.showDimensions !== undefined) {
-      this.showDimensions = settings.showDimensions;
-    }
-    if (settings.highlightColor !== undefined) {
-      this.highlightColor = settings.highlightColor;
-    }
-    
-    if (this.isActive) {
-      this.highlightElements();
-      
-      // Обновляем значения в панели управления
       if (this.controlPanel) {
         const sizeSlider = this.controlPanel.querySelector('#size-slider');
         const sizeValue = this.controlPanel.querySelector('#size-value');
-        const showDimensions = this.controlPanel.querySelector('#show-dimensions');
-        const colorPicker = this.controlPanel.querySelector('#highlight-color');
-        
-        if (sizeSlider) sizeSlider.value = this.minSize;
-        if (sizeValue) sizeValue.textContent = `${this.minSize}px`;
-        if (showDimensions) showDimensions.checked = this.showDimensions;
-        if (colorPicker) colorPicker.value = this.highlightColor;
+        sizeSlider.value = settings.minSize;
+        sizeValue.textContent = `${settings.minSize}px`;
       }
+    }
+    
+    if (settings.showDimensions !== undefined) {
+      this.showDimensions = settings.showDimensions;
+      if (this.controlPanel) {
+        const showDimensionsCheckbox = this.controlPanel.querySelector('#show-dimensions');
+        showDimensionsCheckbox.checked = settings.showDimensions;
+      }
+    }
+    
+    if (settings.highlightColor !== undefined) {
+      this.highlightColor = settings.highlightColor;
+      if (this.controlPanel) {
+        const highlightColorPicker = this.controlPanel.querySelector('#highlight-color');
+        highlightColorPicker.value = settings.highlightColor;
+      }
+    }
+    
+    // Обновляем подсветку после изменения настроек
+    if (this.isActive) {
+      this.highlightElements();
     }
   }
 }
 
-// Создаем экземпляр инструмента
+// Инициализация инструмента проверки размеров элементов
 const elementSizeCheck = new ElementSizeCheck();
 
-// Обработка сообщений от popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'toggleElementSizeCheck') {
-    const isActive = elementSizeCheck.toggle();
-    sendResponse({ isActive });
-  } else if (request.action === 'updateElementSizeCheckSettings') {
-    elementSizeCheck.applySettings(request.settings);
-    sendResponse({ success: true });
-  } else if (request.action === 'getElementSizeCheckStatus') {
-    sendResponse({ isActive: elementSizeCheck.isActive });
+// Обработчик сообщений
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Поддерживаем как новый формат (с type), так и старый (с action) для обратной совместимости
+  const messageType = message.type || message.action;
+  
+  switch(messageType) {
+    case 'TOGGLE_ELEMENT_SIZE_CHECK':
+    case 'toggleElementSizeCheck':
+      if (message.isActive === true) {
+        elementSizeCheck.activate();
+      } else if (message.isActive === false) {
+        elementSizeCheck.deactivate();
+      } else {
+        // Переключаем состояние, если isActive не указан
+        if (elementSizeCheck.isActive) {
+          elementSizeCheck.deactivate();
+        } else {
+          elementSizeCheck.activate();
+        }
+      }
+      
+      // Отправляем ответ с текущим состоянием
+      sendResponse(elementSizeCheck.getState());
+      break;
+    
+    case 'GET_ELEMENT_SIZE_CHECK_STATE':
+      sendResponse(elementSizeCheck.getState());
+      break;
+    
+    case 'UPDATE_ELEMENT_SIZE_CHECK_SETTINGS':
+      elementSizeCheck.updateSettings(message.settings);
+      sendResponse(elementSizeCheck.getState());
+      break;
   }
+  
+  // Необходимо вернуть true для асинхронных ответов
+  return true;
 });

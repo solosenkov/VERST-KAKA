@@ -28,14 +28,16 @@
         "src/css/style-inspector.css",
         "src/css/grid.css",
         "src/css/design-compare.css",
-        "src/css/responsiveness.css" // Добавлены стили для адаптивности
+        "src/css/responsiveness.css", // Добавлены стили для адаптивности
+        "src/css/element-size-check.css" // Добавлены стили для проверки размера элементов
       ],
       "js": [
         "src/js/ruler.js",
         "src/js/style-inspector.js",
         "src/js/grid.js",
         "src/js/design-compare.js",
-        "src/js/responsiveness.js" // Добавлен скрипт для адаптивности
+        "src/js/responsiveness.js", // Добавлен скрипт для адаптивности
+        "src/js/element-size-check.js" // Добавлен скрипт для проверки размера элементов
       ]
     }
   ]

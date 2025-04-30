@@ -207,11 +207,12 @@ class ResponsivenessChecker {
             const iframeDocument = this.iframe.contentDocument;
             if (!iframeDocument) return;
             
-            iframeDocument.querySelectorAll('.accessibility-target-too-small').forEach(el => {
+            const elements = iframeDocument.querySelectorAll('.accessibility-target-too-small');
+            elements.forEach(el => {
                 el.classList.remove('accessibility-target-too-small');
             });
         } catch (e) {
-            console.error('Ошибка очистки подсветок доступности:', e);
+            console.error('Ошибка очистки подсветки доступности:', e);
         }
     }
 
