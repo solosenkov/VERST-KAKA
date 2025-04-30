@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Кнопки инструментов
     const toggleRulerButton = document.getElementById('toggleRuler');
     const toggleStyleInspectorButton = document.getElementById('toggleStyleInspector');
@@ -195,11 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Если content script не отвечает, инжектируем его заново
                 await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
-                    files: ['src/js/ruler.js', 'src/js/style-inspector.js', 'src/js/grid.js', 'src/js/design-compare.js', 'src/js/responsiveness.js', 'src/js/element-size-check.js', 'src/js/accessibility-check.js']
+                    files: ['src/js/ruler.js', 'src/js/style-inspector.js', 'src/js/grid.js', 'src/js/design-compare.js', 'src/js/responsiveness.js', 'src/js/element-size-check.js', 'src/js/accessibility-check.js', 'src/js/high-contrast.js']
                 });
                 await chrome.scripting.insertCSS({
                     target: { tabId: tab.id },
-                    files: ['src/css/ruler.css', 'src/css/style-inspector.css', 'src/css/grid.css', 'src/css/design-compare.css', 'src/css/responsiveness.css', 'src/css/element-size-check.css', 'src/css/accessibility-check.css']
+                    files: ['src/css/ruler.css', 'src/css/style-inspector.css', 'src/css/grid.css', 'src/css/design-compare.css', 'src/css/responsiveness.css', 'src/css/element-size-check.css', 'src/css/accessibility-check.css', 'src/css/high-contrast.css']
                 });
             }
         } catch (error) {
@@ -569,4 +569,111 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Обработчики для режима высокой контрастности
+    const toggleHighContrastButton = document.getElementById('toggleHighContrast');
+    const highContrastSettings = document.getElementById('highContrastSettings');
+    const contrastThreshold = document.getElementById('contrastThreshold');
+    const contrastThresholdValue = document.getElementById('contrastThresholdValue');
+    const highlightLowContrastElements = document.getElementById('highlightLowContrastElements');
+    const highlightContrastColor = document.getElementById('highlightContrastColor');
+    const showContrastReport = document.getElementById('showContrastReport');
+    const exportContrastReport = document.getElementById('exportContrastReport');
+    
+    let highContrastActive = false;
+
+    // Инициализация состояния режима высокой контрастности
+    async function initHighContrastState() {
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            const response = await chrome.tabs.sendMessage(tab.id, { 
+                action: 'getHighContrastState' 
+            });
+            
+            if (response) {
+                highContrastActive = response.isEnabled;
+                toggleHighContrastButton.textContent = highContrastActive ? 
+                    'Выключить высокий контраст' : 'Режим высокой контрастности';
+                highContrastSettings.style.display = highContrastActive ? 'block' : 'none';
+                
+                // Установка значений настроек
+                contrastThreshold.value = response.contrastThreshold;
+                contrastThresholdValue.textContent = response.contrastThreshold;
+            }
+        } catch (error) {
+            console.error('Ошибка при инициализации режима высокого контраста:', error);
+        }
+    }
+
+    // Вызываем инициализацию при загрузке
+    await initHighContrastState();
+
+    toggleHighContrastButton.addEventListener('click', async () => {
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            highContrastActive = !highContrastActive;
+            
+            await chrome.tabs.sendMessage(tab.id, {
+                action: 'toggleHighContrast',
+                enabled: highContrastActive,
+                settings: getHighContrastSettings()
+            });
+            
+            toggleHighContrastButton.textContent = highContrastActive ? 
+                'Выключить высокий контраст' : 'Режим высокой контрастности';
+            highContrastSettings.style.display = highContrastActive ? 'block' : 'none';
+        } catch (error) {
+            console.error('Ошибка при переключении режима высокого контраста:', error);
+        }
+    });
+
+    // Обработчик изменения порога контрастности
+    contrastThreshold.addEventListener('input', async () => {
+        const value = contrastThreshold.value;
+        contrastThresholdValue.textContent = value;
+        await updateHighContrastSettings();
+    });
+
+    // Обработчики изменения настроек
+    highlightLowContrastElements.addEventListener('change', updateHighContrastSettings);
+    highlightContrastColor.addEventListener('change', updateHighContrastSettings);
+    showContrastReport.addEventListener('change', updateHighContrastSettings);
+
+    // Обработчик экспорта отчета
+    exportContrastReport.addEventListener('click', async () => {
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            await chrome.tabs.sendMessage(tab.id, {
+                action: 'exportContrastReport'
+            });
+        } catch (error) {
+            console.error('Ошибка при экспорте отчета:', error);
+        }
+    });
+
+    function getHighContrastSettings() {
+        return {
+            contrastThreshold: parseFloat(contrastThreshold.value),
+            highlightLowContrastElements: highlightLowContrastElements.checked,
+            highlightColor: highlightContrastColor.value,
+            showContrastReport: showContrastReport.checked
+        };
+    }
+
+    async function updateHighContrastSettings() {
+        if (highContrastActive) {
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                await chrome.tabs.sendMessage(tab.id, {
+                    action: 'updateHighContrastSettings',
+                    settings: getHighContrastSettings()
+                });
+            } catch (error) {
+                console.error('Ошибка при обновлении настроек высокого контраста:', error);
+            }
+        }
+    }
+
+    // Инициализация настроек
+    highContrastSettings.style.display = 'none';
 });

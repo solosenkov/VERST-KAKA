@@ -1,0 +1,71 @@
+/* Основные стили для режима высокой контрастности */
+.high-contrast {
+    background-color: #000 !important;
+    color: #fff !important;
+}
+
+.high-contrast * {
+    background-color: #000 !important;
+    color: #fff !important;
+    border-color: #fff !important;
+}
+
+.high-contrast a {
+    color: #ffff00 !important;
+}
+
+.high-contrast img,
+.high-contrast video {
+    filter: grayscale(100%) contrast(120%) !important;
+}
+
+/* Стили для элементов с недостаточным контрастом */
+.low-contrast-warning {
+    outline: 3px solid #ff0000 !important;
+    position: relative;
+}
+
+/* Стили для всплывающей подсказки */
+.contrast-tooltip {
+    position: absolute;
+    background: #333 !important;
+    color: #fff !important;
+    padding: 8px !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    z-index: 10000;
+    max-width: 300px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Стили для отчета */
+.contrast-report {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #333;
+    color: #fff;
+    padding: 15px;
+    border-radius: 4px;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 10001;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.contrast-report h3 {
+    margin: 0 0 10px 0;
+    color: #fff !important;
+}
+
+.contrast-report-item {
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 2px;
+}
+
+.contrast-report-item.error {
+    border-left: 3px solid #ff0000;
+}

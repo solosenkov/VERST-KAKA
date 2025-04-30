@@ -7,11 +7,15 @@
     "activeTab",
     "scripting",
     "tabs",
-    "windows" // Добавлено разрешение для управления окнами
+    "windows",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
+  "background": {
+    "service_worker": "src/js/background.js"
+  },
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": {
@@ -20,6 +24,13 @@
       "128": "src/icons/icon128.png"
     }
   },
+  "web_accessible_resources": [{
+    "resources": [
+      "src/css/*.css",
+      "src/js/*.js"
+    ],
+    "matches": ["<all_urls>"]
+  }],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -29,7 +40,8 @@
         "src/css/grid.css",
         "src/css/design-compare.css",
         "src/css/responsiveness.css", // Добавлены стили для адаптивности
-        "src/css/element-size-check.css" // Добавлены стили для проверки размера элементов
+        "src/css/element-size-check.css", // Добавлены стили для проверки размера элементов
+        "src/css/high-contrast.css"
       ],
       "js": [
         "src/js/ruler.js",
@@ -37,7 +49,8 @@
         "src/js/grid.js",
         "src/js/design-compare.js",
         "src/js/responsiveness.js", // Добавлен скрипт для адаптивности
-        "src/js/element-size-check.js" // Добавлен скрипт для проверки размера элементов
+        "src/js/element-size-check.js", // Добавлен скрипт для проверки размера элементов
+        "src/js/high-contrast.js"
       ]
     }
   ]
