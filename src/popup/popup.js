@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleGridButton = document.getElementById('toggleGrid');
     const toggleDesignCompareButton = document.getElementById('toggleDesignCompare');
     const toggleResponsivenessButton = document.getElementById('toggleResponsiveness');
+    const toggleElementSizeCheckButton = document.getElementById('toggleElementSizeCheck');
     
     // Элементы настроек сетки
     const gridSettings = document.getElementById('gridSettings');
@@ -34,6 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const respWidthValue = document.getElementById('respWidthValue');
     const checkAccessibilityTargetsCheckbox = document.getElementById('checkAccessibilityTargets');
 
+    // Элементы настроек проверки размера элементов
+    const elementSizeCheckSettings = document.getElementById('elementSizeCheckSettings');
+    const minElementSize = document.getElementById('minElementSize');
+    const minElementSizeValue = document.getElementById('minElementSizeValue');
+    const showElementDimensions = document.getElementById('showElementDimensions');
+    const highlightColor = document.getElementById('highlightColor');
+
     // Состояния инструментов
     let isRulerActive = false;
     let isStyleInspectorActive = false;
@@ -41,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDesignCompareActive = false;
     let isResponsivenessActive = false;
     let isCheckingAccessibility = false;
+    let isElementSizeCheckActive = false;
     let currentWindowId = null; // Добавляем переменную для ID окна
 
     // Debounce function
@@ -442,6 +451,78 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Ошибка переключения проверки доступности:', error);
         }
     });
+
+    // Инициализация обработчиков событий для настроек проверки размера элементов
+    if (minElementSize) {
+        minElementSize.addEventListener('input', () => {
+            minElementSizeValue.textContent = minElementSize.value + 'px';
+        });
+    }
+
+    // Обработчик для кнопки проверки размера элементов
+    toggleElementSizeCheckButton.addEventListener('click', async () => {
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            isElementSizeCheckActive = !isElementSizeCheckActive;
+            toggleElementSizeCheckButton.textContent = isElementSizeCheckActive ? 'Выключить проверку размера элементов' : 'Проверять размер элементов';
+            toggleElementSizeCheckButton.classList.toggle('active');
+            elementSizeCheckSettings.classList.toggle('visible', isElementSizeCheckActive);
+
+            await chrome.tabs.sendMessage(tab.id, {
+                action: 'toggleElementSizeCheck'
+            });
+            
+            // Если включаем проверку, отправляем текущие настройки
+            if (isElementSizeCheckActive) {
+                await chrome.tabs.sendMessage(tab.id, {
+                    action: 'updateElementSizeCheckSettings',
+                    settings: {
+                        minSize: parseInt(minElementSize.value),
+                        showDimensions: showElementDimensions.checked,
+                        highlightColor: highlightColor.value
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Ошибка переключения проверки размера элементов:', error);
+            await initContentScript();
+        }
+    });
+
+    // Обновление настроек проверки размера элементов при их изменении
+    if (minElementSize) {
+        minElementSize.addEventListener('change', updateElementSizeCheckSettings);
+    }
+    
+    if (showElementDimensions) {
+        showElementDimensions.addEventListener('change', updateElementSizeCheckSettings);
+    }
+    
+    if (highlightColor) {
+        highlightColor.addEventListener('change', updateElementSizeCheckSettings);
+    }
+    
+    // Функция для обновления настроек проверки размера элементов
+    async function updateElementSizeCheckSettings() {
+        if (!isElementSizeCheckActive) return;
+        
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            
+            const message = {
+                action: 'updateElementSizeCheckSettings',
+                settings: {
+                    minSize: parseInt(minElementSize.value),
+                    showDimensions: showElementDimensions.checked,
+                    highlightColor: highlightColor.value
+                }
+            };
+            
+            await chrome.tabs.sendMessage(tab.id, message);
+        } catch (error) {
+            console.error('Ошибка при обновлении настроек проверки размера элементов:', error);
+        }
+    }
 
     // Слушатель сообщений от content scripts
     chrome.runtime.onMessage.addListener((message) => {
