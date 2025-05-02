@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 highContrastActive = response.isEnabled;
                 toggleHighContrastButton.textContent = highContrastActive ? 
                     'Выключить высокий контраст' : 'Режим высокой контрастности';
-                highContrastSettings.style.display = highContrastActive ? 'block' : 'none';
+                highContrastSettings.classList.toggle('visible', highContrastActive);
                 
                 // Установка значений настроек
                 contrastThreshold.value = response.contrastThreshold;
@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             toggleHighContrastButton.textContent = highContrastActive ? 
                 'Выключить высокий контраст' : 'Режим высокой контрастности';
-            highContrastSettings.style.display = highContrastActive ? 'block' : 'none';
+            highContrastSettings.classList.toggle('visible', highContrastActive);
         } catch (error) {
             console.error('Ошибка при переключении режима высокого контраста:', error);
         }

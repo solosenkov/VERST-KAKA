@@ -39,10 +39,21 @@ class HighContrastMode {
 
     // Парсинг цвета из различных форматов
     parseColor(color) {
+        if (!color || color === 'transparent' || color === 'inherit' || color === 'initial') {
+            return [255, 255, 255]; // Возвращаем белый цвет по умолчанию
+        }
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = color;
-        return ctx.fillStyle.match(/\d+/g).map(Number);
+        
+        // Получаем RGB значения
+        const matches = ctx.fillStyle.match(/\d+/g);
+        if (!matches) {
+            return [255, 255, 255]; // Возвращаем белый цвет если не удалось распарсить
+        }
+        
+        return matches.map(Number).slice(0, 3);
     }
 
     // Проверка элемента на достаточный контраст
